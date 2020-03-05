@@ -691,7 +691,7 @@ public final class NxtNxcVisitor extends AbstractCppVisitor implements INxtVisit
 
     @Override
     public Void visitLightSensor(LightSensor<Void> lightSensor) {
-        String portName = this.brickConfiguration.getConfigurationComponent(lightSensor.getPort()).getPortName();
+        String portName = this.brickConfiguration.getConfigurationComponent(lightSensor.getPort()).getInternalPortName();
         this.sb.append("_readLightSensor(");
         this.sb.append(portName);
         this.sb.append(", ");
@@ -725,14 +725,14 @@ public final class NxtNxcVisitor extends AbstractCppVisitor implements INxtVisit
         } else {
             throw new DbcException("Invalide sensor type:" + colorSensorType + "!");
         }
-        String portName = this.brickConfiguration.getConfigurationComponent(colorSensor.getPort()).getPortName();
+        String portName = this.brickConfiguration.getConfigurationComponent(colorSensor.getPort()).getInternalPortName();
         this.sb.append(portName + ", \"" + colorSensor.getMode() + "\")");
         return null;
     }
 
     @Override
     public Void visitSoundSensor(SoundSensor<Void> soundSensor) {
-        String portName = this.brickConfiguration.getConfigurationComponent(soundSensor.getPort()).getPortName();
+        String portName = this.brickConfiguration.getConfigurationComponent(soundSensor.getPort()).getInternalPortName();
         this.sb.append("Sensor(");
         this.sb.append(portName);
         this.sb.append(")");
@@ -782,7 +782,7 @@ public final class NxtNxcVisitor extends AbstractCppVisitor implements INxtVisit
 
     @Override
     public Void visitTouchSensor(TouchSensor<Void> touchSensor) {
-        String portName = this.brickConfiguration.getConfigurationComponent(touchSensor.getPort()).getPortName();
+        String portName = this.brickConfiguration.getConfigurationComponent(touchSensor.getPort()).getInternalPortName();
         this.sb.append("Sensor(" + portName);
         this.sb.append(")");
         return null;
@@ -790,7 +790,7 @@ public final class NxtNxcVisitor extends AbstractCppVisitor implements INxtVisit
 
     @Override
     public Void visitUltrasonicSensor(UltrasonicSensor<Void> ultrasonicSensor) {
-        String portName = this.brickConfiguration.getConfigurationComponent(ultrasonicSensor.getPort()).getPortName();
+        String portName = this.brickConfiguration.getConfigurationComponent(ultrasonicSensor.getPort()).getInternalPortName();
         this.sb.append("SensorUS(" + portName + ")");
         return null;
     }
@@ -1197,9 +1197,9 @@ public final class NxtNxcVisitor extends AbstractCppVisitor implements INxtVisit
         if ( !withWrapping ) {
             return;
         }
-        this.sb.append("#define WHEELDIAMETER ").append(this.brickConfiguration.getWheelDiameterCM());
+        this.sb.append("#define WHEELDIAMETER ").append(this.brickConfiguration.getWheelDiameter());
         nlIndent();
-        this.sb.append("#define TRACKWIDTH ").append(this.brickConfiguration.getTrackWidthCM());
+        this.sb.append("#define TRACKWIDTH ").append(this.brickConfiguration.getTrackWidth());
         nlIndent();
         this.sb.append("#define MAXLINES 8");
         nlIndent();
@@ -1291,7 +1291,7 @@ public final class NxtNxcVisitor extends AbstractCppVisitor implements INxtVisit
             this.sb.append("SetSensor(");
             ConfigurationComponent configurationComponent = this.brickConfiguration.getConfigurationComponent(usedSensor.getPort());
             String sensorType = configurationComponent.getComponentType();
-            this.sb.append(configurationComponent.getPortName()).append(", ");
+            this.sb.append(configurationComponent.getInternalPortName()).append(", ");
 
             switch ( sensorType ) {
                 case SC.COLOR:
