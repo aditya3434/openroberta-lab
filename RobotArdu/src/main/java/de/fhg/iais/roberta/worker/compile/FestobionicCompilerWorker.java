@@ -1,18 +1,13 @@
 package de.fhg.iais.roberta.worker.compile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.fhg.iais.roberta.bean.CompilerSetupBean;
 import de.fhg.iais.roberta.codegen.AbstractCompilerWorkflow;
@@ -20,6 +15,7 @@ import de.fhg.iais.roberta.components.Project;
 import de.fhg.iais.roberta.util.Key;
 import de.fhg.iais.roberta.util.Pair;
 import de.fhg.iais.roberta.util.Util;
+import de.fhg.iais.roberta.util.ZipHelper;
 import de.fhg.iais.roberta.worker.IWorker;
 
 public class FestobionicCompilerWorker implements IWorker {
@@ -96,28 +92,16 @@ public class FestobionicCompilerWorker implements IWorker {
         Pair<Boolean, String> result = AbstractCompilerWorkflow.runCrossCompiler(executableWithParameters);
         Key resultKey = result.getFirst() ? Key.COMPILERWORKFLOW_SUCCESS : Key.COMPILERWORKFLOW_ERROR_PROGRAM_COMPILE_FAILED;
 
-        // TODO this is a bad workaround and should be changed if this will really be used
         // as we currently only support sending a single file to robots and esp32 needs two files, they are zipped and send the zip is sent to the Connector
         // the connector then unzips the files and correctly flashes them to the robot
-        // in order to circumvent large changes
         if ( result.getFirst() ) {
-            try (FileOutputStream fos = new FileOutputStream(base.resolve(path).toAbsolutePath().normalize() + "/target/" + project.getProgramName() + ".zip"); // TODO hardcoded due to workaround
-                ZipOutputStream zos = new ZipOutputStream(fos)) {
-                for ( String srcFilename : Arrays
+            try {
+                ZipHelper.zipFiles(base.resolve(path).toAbsolutePath().normalize() + "/target/" + project.getProgramName() + ".zip", Arrays
                     .asList(
                         base.resolve(path).toAbsolutePath().normalize() + "/target/" + project.getProgramName() + "." + project.getBinaryFileExtension(),
-                        base.resolve(path).toAbsolutePath().normalize() + "/target/" + project.getProgramName() + ".ino.partitions.bin") ) { // TODO hardcoded due to workaround
-                    File srcFile = new File(srcFilename);
-                    try (FileInputStream fis = new FileInputStream(srcFile)) {
-                        ZipEntry zipEntry = new ZipEntry(srcFile.getName());
-                        zos.putNextEntry(zipEntry);
-                        byte[] bytes = new byte[1024];
-                        int length;
-                        while ( (length = fis.read(bytes)) >= 0 ) {
-                            zos.write(bytes, 0, length);
-                        }
-                    }
-                }
+                        base.resolve(path).toAbsolutePath().normalize() + "/target/" + project.getProgramName() + ".ino.partitions.bin",
+                        compilerResourcesDir + "hardware/additional/esp32/hardware/esp32/1.0.4/tools/sdk/bin/bootloader_qio_80m.bin",
+                        compilerResourcesDir + "hardware/additional/esp32/hardware/esp32/1.0.4/tools/partitions/boot_app0.bin"));
             } catch ( IOException e ) {
                 LOG.warn("The generated esp32 build files could not be zipped:", e);
                 resultKey = Key.COMPILERWORKFLOW_ERROR_PROGRAM_COMPILE_FAILED;
